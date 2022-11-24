@@ -1,50 +1,58 @@
-import React, { Component } from "react"
-import logo from "./logo.svg"
-import "./App.css"
+import './App.css';
+import { useState } from 'react';
+import Axios from "axios"
 
-class LambdaDemo extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { loading: false, msg: null }
+function App() {
+
+  const [pokemonName, setPokemonName] = useState("");
+  const [pokemonChosen, setPokemonChosen] = useState(false);
+  const [pokemon, setPokemon] = useState({
+    name: "",
+        species: "",
+        image: "",
+        hp:"",
+        attack:"",
+        defence:"",
+        type: "",
+  })
+
+  const searchPokemon = () => {
+    Axios.get(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`).then((response) => {
+      setPokemon({
+        name: pokemonName,
+        species: response.data.species.name,
+        image: response.data.sprites.other.dream_world.front_default,
+        hp:response.data.stats[0].base_stat,
+        attack:response.data.stats[1].base_stat,
+        defence:response.data.stats[2].base_stat,
+        type: response.data.types[0].type.name,
+      });
+     setPokemonChosen(true)
+    })
   }
 
-  handleClick = api => e => {
-    e.preventDefault()
-
-    this.setState({ loading: true })
-    fetch("/.netlify/functions/" + api)
-      .then(response => response.json())
-      .then(json => this.setState({ loading: false, msg: json.msg }))
-  }
-
-  render() {
-    const { loading, msg } = this.state
-
-    return (
-      <p>
-        <button onClick={this.handleClick("hello")}>{loading ? "Loading..." : "Call Lambda"}</button>
-        <button onClick={this.handleClick("async-dadjoke")}>{loading ? "Loading..." : "Call Async Lambda"}</button>
-        <br />
-        <span>{msg}</span>
-      </p>
-    )
-  }
-}
-
-class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <LambdaDemo />
-        </header>
+  return (
+    <div className="App">
+      <div className="TitleSection">
+      <h1>Pokemon Stats</h1>
+      <input type="text" onChange={(e) => {
+        setPokemonName(e.target.value);
+      }}></input>
+      <button onClick={searchPokemon}>Search Pokemon</button>
       </div>
-    )
-  }
+      <div className="DisplaySection">
+        {!pokemonChosen ? (<h1>Please choose a Pokemon</h1>) : (<>
+        <h1>{pokemon.name}</h1>
+        <img src={pokemon.image}></img>
+        <h3>Species: {pokemon.species}</h3>
+        <h3>Type: {pokemon.type}</h3>
+        <h4>Hp: {pokemon.hp}</h4>
+        <h4>Attack: {pokemon.attack}</h4>
+        <h4>Defence: {pokemon.defence}</h4>
+        </>)}
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
